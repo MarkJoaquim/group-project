@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://cuiadfh4ty4d6"]
+
+[ext_resource type="PackedScene" uid="uid://dik4qq4dpvsih" path="res://level/level.tscn" id="1_un00t"]
+
+[node name="game" type="Node"]
+
+[node name="level" parent="." instance=ExtResource("1_un00t")]
+position = Vector2(1, 0)
+
+[node name="UI" type="CanvasLayer" parent="."]
