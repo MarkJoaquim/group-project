@@ -1,25 +1,31 @@
-extends CharacterBody2D
-
+class_name Player extends CharacterBody2D
+const SCENE = preload("res://player/player.tscn")
 
 const SPEED = 200.0
 const JUMP_VELOCITY = -300.0
 const TERMINAL_VELOCITY = 600
 
+@onready var playerAnimation := $PlayerAnimation as AnimationPlayer
+@onready var bodySprite := $Body as Sprite2D
+var _double_jump_charged := false
 
-@onready var playerAnimation := $playerAnimation as AnimationPlayer
-@onready var bodySprite := $body as Sprite2D
+static func spawn(spawnPoint: Node2D) -> Player:
+	var player := SCENE.instantiate() as Player
+	player.global_position = spawnPoint.global_position
+	player.set_as_top_level(true)
+	spawnPoint.add_child(player)
+	return player
 
 func _physics_process(delta: float) -> void:
 	# Add the gravity.
 	if not is_on_floor():
 		velocity.y = minf(TERMINAL_VELOCITY, velocity.y + get_gravity().y * delta)
+	else:
+		_double_jump_charged = true
 
 	# Handle jump.
-	if Input.is_action_just_pressed("jump") and is_on_floor():
-		velocity.y = JUMP_VELOCITY
-	elif Input.is_action_just_released("jump") and velocity.y < 0.0:
-		# The player let go of jump early, reduce vertical momentum.
-		velocity.y *= 0.6
+	if Input.is_action_just_pressed("jump"):
+		try_jump()
 
 	if not is_zero_approx(velocity.x):
 		if velocity.x > 0.0:
@@ -52,3 +58,14 @@ func get_new_animation() -> String:
 	else:
 		animation_new = "jump"
 	return animation_new
+
+func try_jump() -> void:
+	if not is_on_floor() and not _double_jump_charged:
+		return
+	elif not is_on_floor():
+		FlashJump.cast(self)
+		_double_jump_charged = false
+		velocity.x *= 2.5
+		velocity.y += JUMP_VELOCITY / 2
+	else:
+		velocity.y = JUMP_VELOCITY
